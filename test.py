@@ -11,7 +11,7 @@ data_first.columns  = ['Vehicle ID','Frame ID','Total Frames','Global Time','Loc
 data_second.columns = ['Vehicle ID','Frame ID','Total Frames','Global Time','Local X','Local Y','Global X', 'Global Y','Vehicle Length','Vehicle Width', 'Vehicle Class', 'Vehicle Velocity', 'Vehicle Acceleration', 'Lane Identification', 'Preceding Vehicle', 'Following Vehicle', 'Spacing', 'Headway ']
 data_third.columns  = ['Vehicle ID','Frame ID','Total Frames','Global Time','Local X','Local Y','Global X', 'Global Y','Vehicle Length','Vehicle Width', 'Vehicle Class', 'Vehicle Velocity', 'Vehicle Acceleration', 'Lane Identification', 'Preceding Vehicle', 'Following Vehicle', 'Spacing', 'Headway ']
 
-vehicle_number_first = data_first['Vehicle ID'].unique().size
+vehicle_number_first = data_first['Global Time'].unique().size
 vehicle_number_second = data_second['Vehicle ID'].unique().size
 vehicle_number_third = data_third['Vehicle ID'].unique().size
 
