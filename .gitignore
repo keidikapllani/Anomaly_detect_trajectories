@@ -1,2 +1,5 @@
 data/
 *.json
+__pycache__/
+Figures/**
+.vscode/
