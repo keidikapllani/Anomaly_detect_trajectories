@@ -8,11 +8,7 @@ File to create example signals and perform wavelet energy peak detection as well
 """
 
 import numpy as np
-<<<<<<< HEAD
 from utils import  wvlt_ener, peak_classify, load_data
-=======
-from utils import  wvlt_ener, peak_classify
->>>>>>> 2a4a234659285a33d329c03ade40355c002dd786
 import matplotlib.pyplot as plt
 import scipy.io as sio
 import pywt
@@ -25,13 +21,10 @@ from scipy import signal
 Plotting example singlas to demonstarte the peak detection by cwt
 '''
 
-<<<<<<< HEAD
 
 data_smooth, _t = load_data(1)
 
 
-=======
->>>>>>> 2a4a234659285a33d329c03ade40355c002dd786
 high_v = 70
 low_v = 10
 mid_v = 35
@@ -43,11 +36,7 @@ L = low_v * np.ones(240)
 
 D = np.linspace(high_v, low_v, half_cycle_length)
 A = np.linspace(low_v, high_v, half_cycle_length)
-<<<<<<< HEAD
 select = 1
-=======
-select = 4
->>>>>>> 2a4a234659285a33d329c03ade40355c002dd786
 if select==1:
     test_signal = np.concatenate((H,D,A,H), axis=0)
 if select==2:
@@ -65,11 +54,7 @@ a = 32
 coef, _t=pywt.cwt(test_signal,a,'mexh')
 E = (1/32) * np.sum(np.square(np.abs(coef)), axis=0)
 
-<<<<<<< HEAD
 thresh = 0.5e4
-=======
-thresh = 0.3e4
->>>>>>> 2a4a234659285a33d329c03ade40355c002dd786
 locs, _d = signal.find_peaks(E,height=thresh)
 
 t_simple = t[locs]
@@ -116,7 +101,6 @@ t_final = t_er[locs_p]
 t_final_n = t_er[locs_n]
 
 
-<<<<<<< HEAD
 #% ---------- The complete process for a real car velocity signal------------ %
 car = data_smooth[np.where(data_smooth[:,0]==756)]
 vel = car[1:-1,4]
@@ -142,8 +126,6 @@ t_final = t_er[locs_car_p]
 t_final_n = t_er[locs_car_n]
 
 
-=======
->>>>>>> 2a4a234659285a33d329c03ade40355c002dd786
 #%%%
 '''
 Plotting mexican wavelet
@@ -249,7 +231,6 @@ plt.subplots_adjust(top=0.99,
 
 #%%
 '''
-<<<<<<< HEAD
 Plotting real data and eb1 and eb2
 '''
 
@@ -284,36 +265,12 @@ for i, txt in enumerate(n):
 
 
 fig.set_dpi(150)
-=======
-Plotting the prototype signal with the direct wt calculation
-'''
-fig, ax = plt.subplots(2, 1,gridspec_kw={'hspace': 0.3, 'wspace': 0.3},figsize=(5,2.5))
-
-ax[0].plot(t,test_signal,'b', linewidth=1.5,label='Prototype Signal')
-ax[0].set(ylabel='Velocity (km/h)', )
-ax[0].set_xlim(0, len(test_signal))
-ax[0].legend()
-
-ax[1].plot(t,e_p_original,'b', linewidth=1.5,label='Eb1')
-n = np.arange(1,len(t_original)+1)
-ax[1].scatter(t_original,e_p_original[t_original], s=80, facecolors='none', edgecolors='r')
-ax[1].set(ylabel='ψ(t)', )
-ax[1].set_xlim(0,  len(t))
-ax[1].legend()
-for i, txt in enumerate(n):
-    ax[1].annotate(txt, (t_original[i],e_p_original[t_original[i]]),textcoords="offset points", # how to position the text
-                 xytext=(-10,2), # distance from text to points (x,y)
-                 ha='center')
-
-fig.set_dpi(200)
->>>>>>> 2a4a234659285a33d329c03ade40355c002dd786
 plt.subplots_adjust(top=0.99,
                     bottom=0.085,
                     left=0.085,
                     right=0.99,
                     hspace=0.2,
                     wspace=0.2)
-<<<<<<< HEAD
 
 #%%
 plt.figure()
@@ -353,5 +310,3 @@ plt.legend()
 
 
 
-=======
->>>>>>> 2a4a234659285a33d329c03ade40355c002dd786
