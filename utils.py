@@ -10,10 +10,11 @@ import numpy as np
 import pywt
 import pandas as pd
 from wrcoef import wavedec1, wrcoef1
-
+import urllib.request
+import requests
 
 #%%
-def load_data(cntrl,force_recalc = False):
+def load_data(cntrl, force_recalc = False):
     print('LOG: Loading data ')
     '''
     Function to load data and perform smoothing and denoising. This function stores the processed data.
@@ -33,16 +34,22 @@ def load_data(cntrl,force_recalc = False):
             print('Forcing smoothing for original data')
             raise UnboundLocalError('Forcing smoothing for original data')
             
-        file_name = 'data_'+data[cntrl]+'_smoooth_de.npy'
+        file_name = 'matricies/data_'+data[cntrl]+'_smoooth_de.npy'
         data_smooth = np.load(file_name)
-        file_name = 'data_'+data[cntrl]+'_raw.npy'
+        file_name = 'matricies/data_'+data[cntrl]+'_raw.npy'
         data_raw = np.load(file_name)
         print('LOG: Data loaded from pre-processed arrays ')
         
     except:
         print('LOG: Peforming smoothing & denoising on data ')
         if cntrl == 0:
-            data_first  = pd.read_csv('data/0750am-0805am/trajectories-0750am-0805am.txt', delim_whitespace=True, header=None)
+            try:
+                data_first  = pd.read_csv('data/0750am-0805am/trajectories-0750am-0805am.txt', delim_whitespace=True, header=None)
+            except:
+                print('Dowloading data for 0750am-0805am ')
+                url = 'https://drive.google.com/open?id=1FKC3TrKFDAsK0gQO_YRujpal6gPQtJiB'  
+                download_file_from_google_drive(url,'data/trajectories-0750am-0805am.txt')
+                data_first  = pd.read_csv('data/trajectories-0750am-0805am.txt', delim_whitespace=True, header=None)
             timestamp = pd.to_datetime(data_first[3],unit='ms')
             data_first[3] = time_fix(timestamp)
             data_raw = data_first.values 
@@ -53,8 +60,8 @@ def load_data(cntrl,force_recalc = False):
             data_ext = np.zeros((data_raw.shape[0],8))
             data_ext[:,:-1] = data_raw
             data_smooth= smooth_data(data_ext)
-            np.save( 'data_'+data[cntrl]+'_smoooth_de',data_smooth)
-            np.save( 'data_'+data[cntrl]+'_raw',data_raw)
+            np.save( 'matricies/data_'+data[cntrl]+'_smoooth_de',data_smooth)
+            np.save( 'matricies/data_'+data[cntrl]+'_raw',data_raw)
             
         #Second time-group    
         elif cntrl==1:
@@ -69,8 +76,8 @@ def load_data(cntrl,force_recalc = False):
             data_ext = np.zeros((data_raw.shape[0],8))
             data_ext[:,:-1] = data_raw
             data_smooth = smooth_data(data_ext)
-            np.save( 'data_'+data[cntrl]+'_smoooth_de',data_smooth)
-            np.save( 'data_'+data[cntrl]+'_raw',data_raw)
+            np.save( 'matricies/data_'+data[cntrl]+'_smoooth_de',data_smooth)
+            np.save( 'matricies/data_'+data[cntrl]+'_raw',data_raw)
         #Third time-group    
         elif cntrl==2:
             data_third  = pd.read_csv('data/0820am-0835am/trajectories-0820am-0835am.txt', delim_whitespace=True, header=None)
@@ -84,8 +91,12 @@ def load_data(cntrl,force_recalc = False):
             data_ext = np.zeros((data_raw.shape[0],8))
             data_ext[:,:-1] = data_raw
             data_smooth = smooth_data(data_ext)
-            np.save( 'data_'+data[cntrl]+'_smoooth_de',data_smooth)
-            np.save( 'data_'+data[cntrl]+'_raw',data_raw)
+            np.save( 'matricies/data_'+data[cntrl]+'_smoooth_de',data_smooth)
+            np.save( 'matricies/data_'+data[cntrl]+'_raw',data_raw)
+        
+        else:
+            raise UnboundLocalError('Please select either dataset 1,2 or 3')
+        
             
     
     print('LOG: Done')
@@ -276,6 +287,38 @@ def clust_assign(t_new, x_new, cid_new, t, x, cid):
     
     
     return cluster_flag, xt_dist
+
+#%%%
+    
+
+def download_file_from_google_drive(id, destination):
+    URL = "https://docs.google.com/uc?export=download"
+
+    session = requests.Session()
+
+    response = session.get(URL, params = { 'id' : id }, stream = True)
+    token = get_confirm_token(response)
+
+    if token:
+        params = { 'id' : id, 'confirm' : token }
+        response = session.get(URL, params = params, stream = True)
+
+    save_response_content(response, destination)    
+
+def get_confirm_token(response):
+    for key, value in response.cookies.items():
+        if key.startswith('download_warning'):
+            return value
+
+    return None
+
+def save_response_content(response, destination):
+    CHUNK_SIZE = 32768
+
+    with open(destination, "wb") as f:
+        for chunk in response.iter_content(CHUNK_SIZE):
+            if chunk: # filter out keep-alive new chunks
+                f.write(chunk)
     
     
     

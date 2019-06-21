@@ -12,7 +12,7 @@ from scipy import stats
 
 #%%
 
-switch = 2
+switch = 0
 data_smooth, _p = load_data(switch,False)
 
 #%%
