@@ -1,5 +1,6 @@
 from __future__ import division, print_function, absolute_import
 import numpy as np
+<<<<<<< HEAD
 from utils import load_data, lane_changer, wvlt_ener, peak_classify, clust_assign
 import matplotlib.pyplot as plt
 from matplotlib.collections import LineCollection
@@ -7,13 +8,25 @@ from scipy import signal
 from sklearn.cluster import SpectralClustering
 from itertools import cycle
 from scipy import stats 
+=======
+from utils import load_data, lane_changer, wvlt_ener, peak_classify
+import matplotlib.pyplot as plt
+
+from scipy import signal
+
+>>>>>>> 2a4a234659285a33d329c03ade40355c002dd786
 #%matplotlib auto
 
 
 #%%
 
+<<<<<<< HEAD
 switch = 0
 data_smooth, _p = load_data(switch,False)
+=======
+switch = 1
+data_smooth, _p = load_data(switch,True)
+>>>>>>> 2a4a234659285a33d329c03ade40355c002dd786
 
 #%%
 '''
@@ -21,6 +34,7 @@ Finding ids of cars in lane j frame l
 
 '''
 
+<<<<<<< HEAD
 for l in range(1):
     #find data in time windows
     car_ids = np.unique(data_smooth[:,0]).astype(int)
@@ -29,6 +43,14 @@ for l in range(1):
     window_end = window_start + frame_length
 #    window_start= 7.83
 #    window_end = 7.88
+=======
+for l in range(0,1):
+    #find data in time windows
+    car_ids = np.unique(data_smooth[:,0]).astype(int)
+    frame_length = 5/60
+    window_start = data_smooth[0,1] + frame_length*l
+    window_end = window_start + frame_length
+>>>>>>> 2a4a234659285a33d329c03ade40355c002dd786
     windowed_car_ids = []
     for i in range(len(car_ids)):
         car = data_smooth[np.where(data_smooth[:,0]==car_ids[i])]
@@ -41,7 +63,12 @@ for l in range(1):
     lanes = ['1','2','3','4','5']
     peaks_groups = []
     
+<<<<<<< HEAD
     for j in range(4,5):    
+=======
+    for j in range(1):
+    
+>>>>>>> 2a4a234659285a33d329c03ade40355c002dd786
         print('LOG: Working lane '+lanes[j]+' in frame '+str(l+1))
         #find ids in lane j+1 
         
@@ -59,8 +86,12 @@ for l in range(1):
         car = data_smooth[np.where(data_smooth[:,0]==windowed_lane_cf_ids[0])]
         ylim_min = car[66,2]  
         ylim_max = car[len(car)-67,2]
+<<<<<<< HEAD
         fig, axs = plt.subplots(1,1,figsize=(15,10))
 #        plt.figure(figsize=(15,10))
+=======
+        plt.figure(figsize=(15,10))
+>>>>>>> 2a4a234659285a33d329c03ade40355c002dd786
         for i in range(0,windowed_lane_cf_ids.size):
             #get a single vehilce
             car = data_smooth[np.where(data_smooth[:,0]==windowed_lane_cf_ids[i])]
@@ -86,7 +117,11 @@ for l in range(1):
             e_n = e_n[304:-304]
             pos = pos[66:-66]
             t = t[66:-66]
+<<<<<<< HEAD
             thresh = 1e4
+=======
+            thresh = 0.4e4
+>>>>>>> 2a4a234659285a33d329c03ade40355c002dd786
             locs_p, _d = signal.find_peaks(e_p,height=thresh)
             locs_n, _d = signal.find_peaks(e_n,height=thresh)
             locs, info = peak_classify(locs_p, locs_n,v_out)
@@ -103,6 +138,7 @@ for l in range(1):
                 
            
             
+<<<<<<< HEAD
 #            plt.plot(t,pos,'k', linewidth=1) # normal plot
 #            
 #            plot with heat map
@@ -161,18 +197,65 @@ for l in range(1):
 ##        plt.savefig('Figures/Dataset_'+str(switch+1)+'/Frame_'+str(l+1)+'_lane_'+lanes[j]+'.png',bbox_inches='tight')
 #        plt.show()
 #        fig.colorbar(lc, ax=axs)
+=======
+    #        peaks_groups.append([])
+            plt.plot(t,pos,'k', linewidth=1)
+            for k in range(0,info.size):
+                if info[k] == 1:
+                    dec = plt.scatter(t[locs[k]+2],pos[locs[k]+2],
+                                      marker='x',c='blue',
+                                      label='Deceleration')
+                if info[k] == 0:
+                    acc = plt.scatter(t[locs[k]+2],pos[locs[k]+2],
+                                     marker='o',c='red',
+                                     label='Acceleration')
+                if info[k] == 2:
+                    std = plt.scatter(t[locs[k]+2],pos[locs[k]+2],
+                                     marker='^',c='green',
+                                     label='Stredy-state')
+                else:
+                    continue
+        
+        for i in range(windowed_lane_lc_ids.size):
+            car = data_smooth[np.where(data_smooth[:,0]==windowed_lane_lc_ids[i])]
+            if car[:,4].size <150:
+                continue
+            car = car[np.where(car[:,5]==j+1)]
+            pos = car[66:-66,2]
+            t = car[66:-66,1]
+            
+            plt.plot(t,pos,'k', linewidth=1,ls='--')
+        
+        plt.legend((dec, acc, std),
+                   ('Deceleration', 'Acceleration', 'Steady-state'),
+                   scatterpoints=1,
+                   loc='lower right',
+                   ncol=1,
+                   fontsize=15)
+        plt.xlabel('Time (h)')
+        plt.ylabel('Position (km)')
+        plt.title('Anomaly detection demonstration for '+str(l+1)+' frame in lane '+lanes[j], fontsize= 20)
+        plt.ylim(ylim_min,ylim_max)
+        plt.savefig('Figures/Dataset_'+str(switch+1)+'/Frame_'+str(l+1)+'_lane_'+lanes[j]+'.png',bbox_inches='tight')
+        plt.show()
+>>>>>>> 2a4a234659285a33d329c03ade40355c002dd786
         #
         
         peaks_groups = peak_ids,peaks_time,peaks_pos,peaks_info
         peaks_groups = np.asarray(peaks_groups).T
     
 
+<<<<<<< HEAD
+=======
+#%%
+>>>>>>> 2a4a234659285a33d329c03ade40355c002dd786
 car_ids = np.unique(peak_ids)
 num_peaks = len(peaks_info)
 
 first_car_num = np.where(peak_ids==car_ids[0])[0].size  
 
 cntr_cluster  = first_car_num
+<<<<<<< HEAD
 wave_clusters = [[] for _ in range(cntr_cluster)]
 
 for i in range(first_car_num):
@@ -280,6 +363,31 @@ plt.show()
 '''
 K-means clustering for osciallations tracing
 '''
+=======
+wave_clusters = []
+for i in range(first_car_num):
+    wave_clusters.append([peaks_groups[i,0],
+                         peaks_groups[i,1],
+                         peaks_groups[i,2],
+                         peaks_groups[i,3], 
+                         i                 ])
+    
+
+
+for i in range(first_car_num,num_peaks):
+    t0 = peaks_time(i);
+    x0 = peaks_pos(i);
+    id0 = peak_ids(i);
+    
+    cluster_array = np.zeros(cntr_cluster,3)
+    for j in range(cntr_cluster):
+        t = wave_clusters[j][1]
+        x = wave_clusters[j][2]
+        cid = wave_clusters[j][0]
+        
+#%%
+
+>>>>>>> 2a4a234659285a33d329c03ade40355c002dd786
 from sklearn.cluster import KMeans
 from sklearn import preprocessing as prep
 
@@ -287,11 +395,16 @@ from sklearn import preprocessing as prep
 #plt.scatter(peaks_time,peaks_pos)
 index_peaks = np.where(peaks_info != 2)[0]
 alfa_test = peaks_time,peaks_pos,peaks_info
+<<<<<<< HEAD
 alfa_test = np.zeros((328,3))
+=======
+alfa_test = np.zeros((114,3))
+>>>>>>> 2a4a234659285a33d329c03ade40355c002dd786
 alfa_test[:,0] = prep.normalize([peaks_time[index_peaks]])
 alfa_test[:,1] = prep.normalize([peaks_pos[index_peaks]])
 alfa_test[:,2] = prep.normalize([peaks_info[index_peaks]])
 
+<<<<<<< HEAD
 
 clustering = SpectralClustering(n_clusters=11, assign_labels="discretize", random_state=0).fit(alfa_test)
 
@@ -463,3 +576,9 @@ break_loc, _d = signal.find_peaks(r_value,height=0.52)
     
     
     
+=======
+kmeans = KMeans(n_clusters=4, random_state=0).fit(alfa_test)
+alfa_vals= kmeans.labels_
+
+plt.scatter(peaks_time[index_peaks], peaks_pos[index_peaks], c=kmeans.labels_)
+>>>>>>> 2a4a234659285a33d329c03ade40355c002dd786

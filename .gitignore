@@ -1,3 +1,6 @@
 /data/*
 *.txt
 *.json
+__pycache__/
+Figures/**
+.vscode/
