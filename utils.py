@@ -9,10 +9,13 @@ Collection of functions used in the main.py
 import numpy as np
 import pywt
 import pandas as pd
+import matplotlib.pyplot as plt
+from matplotlib.collections import LineCollection
+from scipy import signal
+from scipy import stats 
 from wrcoef import wavedec1, wrcoef1
-import urllib.request
-import requests
-
+#pip install gdown
+import gdown
 #%%
 def load_data(cntrl, force_recalc = False):
     print('LOG: Loading data ')
@@ -34,65 +37,84 @@ def load_data(cntrl, force_recalc = False):
             print('Forcing smoothing for original data')
             raise UnboundLocalError('Forcing smoothing for original data')
             
-        file_name = 'matricies/data_'+data[cntrl]+'_smoooth_de.npy'
+        file_name   = 'matrices/data_'+data[cntrl]+'_smoooth_de.npy'
         data_smooth = np.load(file_name)
-        file_name = 'matricies/data_'+data[cntrl]+'_raw.npy'
-        data_raw = np.load(file_name)
+        file_name   = 'matrices/data_'+data[cntrl]+'_raw.npy'
+        data_raw    = np.load(file_name)
         print('LOG: Data loaded from pre-processed arrays ')
         
     except:
         print('LOG: Peforming smoothing & denoising on data ')
         if cntrl == 0:
             try:
-                data_first  = pd.read_csv('data/0750am-0805am/trajectories-0750am-0805am.txt', delim_whitespace=True, header=None)
-            except:
-                print('Dowloading data for 0750am-0805am ')
-                url = 'https://drive.google.com/open?id=1FKC3TrKFDAsK0gQO_YRujpal6gPQtJiB'  
-                download_file_from_google_drive(url,'data/trajectories-0750am-0805am.txt')
                 data_first  = pd.read_csv('data/trajectories-0750am-0805am.txt', delim_whitespace=True, header=None)
-            timestamp = pd.to_datetime(data_first[3],unit='ms')
-            data_first[3] = time_fix(timestamp)
-            data_raw = data_first.values 
-            data_raw = data_raw[:,keep]
-            data_raw[:,2] = data_raw[:,2]* 0.0003048  #convert position data to km
-            data_raw[:,6] = data_raw[:,6]* 0.0003048  #convert space data to km
-            data_raw[:,4] = data_raw[:,4]* 1.09728  #convert space data to km
-            data_ext = np.zeros((data_raw.shape[0],8))
+            except:
+                print('LOG: Downloading data for 0750am-0805am ')
+                url    = 'https://drive.google.com/uc?id=1E7_ABEvLcWFUC6xkknJSreKNAU12v-Fk'
+                output = 'data/trajectories-0750am-0805am.txt'
+                gdown.download(url, output, quiet=False)
+                print('LOG: Downloading data for 0750am-0805am ')
+                data_first  = pd.read_csv('data/trajectories-0750am-0805am.txt', delim_whitespace=True, header=None)
+                
+            timestamp       = pd.to_datetime(data_first[3],unit='ms')
+            data_first[3]   = time_fix(timestamp)
+            data_raw        = data_first.values 
+            data_raw        = data_raw[:,keep]
+            data_raw[:,2]   = data_raw[:,2]* 0.0003048  #convert position data to km
+            data_raw[:,6]   = data_raw[:,6]* 0.0003048  #convert space data to km
+            data_raw[:,4]   = data_raw[:,4]* 1.09728  #convert space data to km
+            data_ext        = np.zeros((data_raw.shape[0],8))
             data_ext[:,:-1] = data_raw
-            data_smooth= smooth_data(data_ext)
-            np.save( 'matricies/data_'+data[cntrl]+'_smoooth_de',data_smooth)
-            np.save( 'matricies/data_'+data[cntrl]+'_raw',data_raw)
+            data_smooth     = smooth_data(data_ext)
+            np.save( 'matrices/data_'+data[cntrl]+'_smoooth_de',data_smooth)
+            np.save( 'matrices/data_'+data[cntrl]+'_raw',data_raw)
             
         #Second time-group    
         elif cntrl==1:
-            data_second = pd.read_csv('data/0805am-0820am/trajectories-0805am-0820am.txt', delim_whitespace=True, header=None)
-            timestamp = pd.to_datetime(data_second[3],unit='ms')
-            data_second[3] = time_fix(timestamp)
-            data_raw = data_second.values 
-            data_raw = data_raw[:,keep]
-            data_raw[:,2] = data_raw[:,2]* 0.0003048  #convert to km
-            data_raw[:,6] = data_raw[:,6]* 0.0003048  #convert space data to km
-            data_raw[:,4] = data_raw[:,4]* 1.09728  #convert space data to km
-            data_ext = np.zeros((data_raw.shape[0],8))
+            try:
+                data_second = pd.read_csv('data/trajectories-0805am-0820am.txt', delim_whitespace=True, header=None)
+            except:
+                print('LOG: Dowloading data for 0805am-0820am ')
+                url    = 'https://drive.google.com/uc?id=1flg3VYnOOAQa3we74WPS8MsI0EuUdLqi'
+                output = 'data/trajectories-0805am-0820am.txt'
+                gdown.download(url, output, quiet=False)
+                print('LOG: Downloading data for 0805am-0820am ')
+                data_second = pd.read_csv('data/trajectories-0805am-0820am.txt', delim_whitespace=True, header=None)
+            timestamp       = pd.to_datetime(data_second[3],unit='ms')
+            data_second[3]  = time_fix(timestamp)
+            data_raw        = data_second.values 
+            data_raw        = data_raw[:,keep]
+            data_raw[:,2]   = data_raw[:,2]* 0.0003048  #convert to km
+            data_raw[:,6]   = data_raw[:,6]* 0.0003048  #convert space data to km
+            data_raw[:,4]   = data_raw[:,4]* 1.09728  #convert space data to km
+            data_ext        = np.zeros((data_raw.shape[0],8))
             data_ext[:,:-1] = data_raw
             data_smooth = smooth_data(data_ext)
-            np.save( 'matricies/data_'+data[cntrl]+'_smoooth_de',data_smooth)
-            np.save( 'matricies/data_'+data[cntrl]+'_raw',data_raw)
+            np.save( 'matrices/data_'+data[cntrl]+'_smoooth_de',data_smooth)
+            np.save( 'matrices/data_'+data[cntrl]+'_raw',data_raw)
         #Third time-group    
         elif cntrl==2:
-            data_third  = pd.read_csv('data/0820am-0835am/trajectories-0820am-0835am.txt', delim_whitespace=True, header=None)
+            try:
+                data_third  = pd.read_csv('data/0820am-0835am/trajectories-0820am-0835am.txt', delim_whitespace=True, header=None)
+            except:
+                print('LOG: Dowloading data for 0820am-0835am ')
+                url    = 'https://drive.google.com/uc?id=1FKC3TrKFDAsK0gQO_YRujpal6gPQtJiB'
+                output = 'data/trajectories-0820am-0835am.txt'
+                gdown.download(url, output, quiet=False)
+                print('LOG: Downloading data for 0805am-0820am ')
+                data_third  = pd.read_csv('data/trajectories-0820am-0835am.txt', delim_whitespace=True, header=None)
             timestamp = pd.to_datetime(data_third[3],unit='ms')
-            data_third[3] = time_fix(timestamp)
-            data_raw = data_third.values 
-            data_raw = data_raw[:,keep]
-            data_raw[:,2] = data_raw[:,2]* 0.0003048  #convert to km
-            data_raw[:,6] = data_raw[:,6]* 0.0003048  #convert space data to km
-            data_raw[:,4] = data_raw[:,4]* 1.09728  #convert space data to km
-            data_ext = np.zeros((data_raw.shape[0],8))
+            data_third[3]   = time_fix(timestamp)
+            data_raw        = data_third.values 
+            data_raw        = data_raw[:,keep]
+            data_raw[:,2]   = data_raw[:,2]* 0.0003048  #convert to km
+            data_raw[:,6]   = data_raw[:,6]* 0.0003048  #convert space data to km
+            data_raw[:,4]   = data_raw[:,4]* 1.09728  #convert space data to km
+            data_ext        = np.zeros((data_raw.shape[0],8))
             data_ext[:,:-1] = data_raw
-            data_smooth = smooth_data(data_ext)
-            np.save( 'matricies/data_'+data[cntrl]+'_smoooth_de',data_smooth)
-            np.save( 'matricies/data_'+data[cntrl]+'_raw',data_raw)
+            data_smooth     = smooth_data(data_ext)
+            np.save( 'matrices/data_'+data[cntrl]+'_smoooth_de',data_smooth)
+            np.save( 'matrices/data_'+data[cntrl]+'_raw',data_raw)
         
         else:
             raise UnboundLocalError('Please select either dataset 1,2 or 3')
@@ -101,16 +123,12 @@ def load_data(cntrl, force_recalc = False):
     
     print('LOG: Done')
     return data_smooth, data_raw
-
-
-
-
-
 #%%
 def diff_v_a(x_in,dt):
-# Perform numerical derivative to estimate instantenous velocity from poistion data. 
-    
-    N = np.shape(x_in)
+    '''
+    # Perform numerical derivative to estimate instantenous velocity from poistion data. 
+    '''
+    N   = np.shape(x_in)
     vel = np.zeros(N[0])
     for i in range(1,N[0]-1):
         vel[i-1] = (x_in[i+1]-x_in[i-1])/(2*dt)
@@ -122,15 +140,15 @@ def diff_v_a(x_in,dt):
 
 def sema_smoothing(x_in,dt,T):
     delta = T/dt
-    N = np.shape(x_in)
+    N     = np.shape(x_in)
     x_out = np.zeros(N[0])
     for i in range(1,N[0]+1):
-        D = int(min(3*delta,i-1,N[0]-i))
-        k = np.arange(i-D,i+D+1)
-        p = -np.abs(i-k)/delta
+        D   = int(min(3*delta,i-1,N[0]-i))
+        k   = np.arange(i-D,i+D+1)
+        p   = -np.abs(i-k)/delta
         exx = np.exp(p)
-        Z = np.sum(exx)
-        xa = x_in[k-1]
+        Z   = np.sum(exx)
+        xa  = x_in[k-1]
         x_out[i-1] = (1/Z) * np.sum(xa.T*exx)
     return x_out
 
@@ -224,8 +242,8 @@ def peak_classify(locs_p, locs_n, v):
     OUTPUT: locs_sort: Index of peaks classified
             info_sort: Peak information; 0 - Decceleration (D) , 1-Acceleration (A), 3-Steade-state (S)
     """
-    locs_pn = np.append(locs_p,locs_n)
-    info = np.append(np.ones(locs_p.size),np.zeros(locs_n.size))
+    locs_pn   = np.append(locs_p,locs_n)
+    info      = np.append(np.ones(locs_p.size),np.zeros(locs_n.size))
     locs_sort = np.sort(locs_pn)
     info_sort = info[np.argsort(locs_pn)]
     if locs_sort.size>0:
@@ -249,10 +267,10 @@ def time_fix(timestamp):
     INPUT: timestamp: pandas timestamp data
     OUTPUT: t_fixed: Time data in hours
     """
-    hour = timestamp.dt.hour.values - 7
+    hour    = timestamp.dt.hour.values - 7
     minutes = timestamp.dt.minute.values
     seconds = timestamp.dt.second.values
-    ms = timestamp.dt.microsecond.values/1e6
+    ms      = timestamp.dt.microsecond.values/1e6
     t_fixed = hour + np.round((((seconds+ms)/60)+minutes)/60,4)
     
     return t_fixed
@@ -287,44 +305,261 @@ def clust_assign(t_new, x_new, cid_new, t, x, cid):
     
     
     return cluster_flag, xt_dist
-
-#%%%
     
-
-def download_file_from_google_drive(id, destination):
-    URL = "https://docs.google.com/uc?export=download"
-
-    session = requests.Session()
-
-    response = session.get(URL, params = { 'id' : id }, stream = True)
-    token = get_confirm_token(response)
-
-    if token:
-        params = { 'id' : id, 'confirm' : token }
-        response = session.get(URL, params = params, stream = True)
-
-    save_response_content(response, destination)    
-
-def get_confirm_token(response):
-    for key, value in response.cookies.items():
-        if key.startswith('download_warning'):
-            return value
-
-    return None
-
-def save_response_content(response, destination):
-    CHUNK_SIZE = 32768
-
-    with open(destination, "wb") as f:
-        for chunk in response.iter_content(CHUNK_SIZE):
-            if chunk: # filter out keep-alive new chunks
-                f.write(chunk)
+#%%
+def anomaly_detect(data_smooth, frame_length =3/60, plot = 'Normal', start_frame = 0, num_frames = 1, start_lane = 0, num_lanes=1 ):
+    '''
+     Function to detect anomalies for 1 frame at a time. Returns peaks found. 
+     
+     INPUT: data_smooth: smooth data matrix for 1 time-period
+           frame_length: length of each frame to analyse
+           start_frame: index of starting frame (0 is first frame)
+           num_frames: number of frames (NOTE: Number fo frames should be proportional to frame length)
+           start_lane: Starting lane to consider (0- Lane 1 ... 4- Lane 5)
+           num_lanes : Number of lanes to analyse (MAX 5)
+           v:      velocity data
+     OUTPUT: peaks_groups: All peaks detected in the form [Car ID, Peak Time, Peak Position , Peak Type]
+    '''
     
+    lanes   = ['1','2','3','4','5']
+    car_ids = np.unique(data_smooth[:,0]).astype(int)
+    for l in range(start_frame, start_frame+num_frames):
+        #find data in time windows
+        window_start = data_smooth[0,1] + frame_length*l 
+        window_end   = window_start + frame_length
+        windowed_car_ids = []
+        for i in range(len(car_ids)):
+            car = data_smooth[np.where(data_smooth[:,0]==car_ids[i])]
+            if (car[0,1] > window_start and car[0,1]<window_end):
+                windowed_car_ids = np.append(windowed_car_ids,car[0,0])
+            else:
+                continue
+        lane_nor_id, lane_chang_id = lane_changer(data_smooth)
+        peaks_groups = []
+        
+        for j in range(start_lane, start_lane+num_lanes):    
+            print('LOG: Working lane '+lanes[j]+' in frame '+str(l+1))
+            #find ids in lane j+1 
+            
+            idx_lane = np.where(data_smooth[:,5]==j+1)
+            lane     = data_smooth[idx_lane[0],:]
+            ids_lane = np.unique(lane[:,0]).astype(int)
+            #find non-lane changers in frame
+            no_change_time_wind_ids = np.intersect1d(lane_nor_id,windowed_car_ids).astype(int)
+            #find lane changers in frame 
+            lane_cngr_time_wind_ids = np.intersect1d(lane_chang_id,windowed_car_ids).astype(int)
+            #find non-lane changers in lane i+1 in frame
+            windowed_lane_cf_ids    = np.intersect1d(no_change_time_wind_ids,ids_lane).astype(int)
+            #find non-lane changers in lane i+1 in frame 
+            windowed_lane_lc_ids    = np.intersect1d(lane_cngr_time_wind_ids,ids_lane).astype(int)
+            car      = data_smooth[np.where(data_smooth[:,0]==windowed_lane_cf_ids[0])]
+            ylim_min = car[66,2]  
+            ylim_max = car[len(car)-67,2]
+            
+            if plot == 'Heatmap':
+                fig, axs = plt.subplots(1,1,figsize=(15,10))
+            elif plot == 'Normal':
+                plt.figure(figsize=(15,10))
+            else:
+                None
+                
+            for i in range(0,windowed_lane_cf_ids.size):
+                #get a single vehicle
+                car = data_smooth[np.where(data_smooth[:,0]==windowed_lane_cf_ids[i])]
+                
+                if car[:,4].size <150:
+                    continue
+                
+                vel   = car[ 2:-2 ,4]
+                v_out = car[66:-66,4]
+                pos   = car[66:-66,2]
+                t     = car[66:-66,1]
+                #extend by 240 on both sides
+                zr  = np.ones(240,)*vel[vel.size-1]
+                vel = np.append(vel,zr)
+                zr  = np.ones(240,)*vel[0]
+                vel = np.insert( vel, 0, zr)
+                #reversved signal
+                vel_rev = np.max(vel) - vel
+                #calculate energy
+                e_p = wvlt_ener(vel)
+                e_n = wvlt_ener(vel_rev)
+                #remove extended data
+                e_p = e_p[304:-304]
+                e_n = e_n[304:-304]
+                thresh     = 1e4
+                locs_p, _d = signal.find_peaks(e_p,height=thresh)
+                locs_n, _d = signal.find_peaks(e_n,height=thresh)
+                locs, info = peak_classify(locs_p, locs_n,v_out)
+                if i == 0:
+                    peak_ids   = np.repeat(car[0,0],info.size)
+                    peaks_time = t[locs]
+                    peaks_pos  = pos[locs]
+                    peaks_info = info
+                else:
+                    peak_ids   = np.append(peak_ids,np.repeat(car[0,0],info.size))
+                    peaks_time = np.append(peaks_time,t[locs])
+                    peaks_pos  = np.append(peaks_pos,pos[locs])
+                    peaks_info = np.append(peaks_info,info)
+                    
+                if plot == 'Normal':
+                    plt.plot(t,pos,'k', linewidth=1) # normal plot
+                    for k in range(0,info.size):
+                        if info[k] == 1:
+                            dec = plt.scatter(t[locs[k]+2],pos[locs[k]+2],
+                                              label='Deceleration',s=60, 
+                                              facecolors='none', 
+                                              edgecolors='b')
+                        if info[k] == 0:
+                            acc = plt.scatter(t[locs[k]+2],pos[locs[k]+2],
+                                               s=60, 
+                                              facecolors='none', 
+                                              edgecolors='r',
+                                             label='Acceleration')
+                        if info[k] == 2:
+                            std = plt.scatter(t[locs[k]+2],pos[locs[k]+2],
+                                             marker='^',c='g',
+                                             label='Steady-state')
+                        else:
+                            continue
+                elif plot == 'Heatmap':
+                    points   = np.array([t, pos]).T.reshape(-1, 1, 2)
+                    segments = np.concatenate([points[:-1], points[1:]], axis=1)
+                    norm     = plt.Normalize(v_out.min(), v_out.max())
+                    lc       = LineCollection(segments, cmap='inferno', norm=norm)
+                    lc.set_array(v_out)
+                    lc.set_linewidth(2)
+                    line     = axs.add_collection(lc)
+                else:
+                    None
+            if plot == 'Normal':        
+                for i in range(windowed_lane_lc_ids.size):
+                    car = data_smooth[np.where(data_smooth[:,0]==windowed_lane_lc_ids[i])]
+                    if car[:,4].size <150:
+                        continue
+                    car = car[np.where(car[:,5]==j+1)]
+                    pos = car[66:-66,2]
+                    t   = car[66:-66,1]
+                    plt.plot(t,pos,'k', linewidth=1,ls='--')
+            else:
+                None
+        if plot == 'Normal':
+            plt.legend((dec, acc, std),
+                       ('Deceleration', 'Acceleration'),
+                       scatterpoints=1,
+                       loc='lower right',
+                       ncol=1,
+                       fontsize=15)
+            plt.xlabel('Time (h)')
+            plt.ylabel('Position (km)')
+            plt.ylim(ylim_min,ylim_max)
+            plt.xlim(window_start,t[-1])
+#            plt.savefig('Figures/Dataset_'+str(switch+1)+'/Frame_'+str(l+1)+'_lane_'+lanes[j]+'.png',bbox_inches='tight')
+            plt.show()
+        if plot == 'Heatmap':
+            axs.set_xlabel('Time (h)')
+            axs.set_ylabel('Position (km)')
+            axs.set_ylim(ylim_min,ylim_max)
+            axs.set_xlim(window_start,t[-1])
+    #        plt.savefig('Figures/Dataset_'+str(switch+1)+'/Frame_'+str(l+1)+'_lane_'+lanes[j]+'.png',bbox_inches='tight')
+            fig.colorbar(lc, ax=axs)
+            plt.show()
+        else:
+            None
+        peaks_groups = peak_ids,peaks_time,peaks_pos,peaks_info
+        peaks_groups = np.asarray(peaks_groups).T
+        
+        return peaks_groups
+#%%
+        
+def cluster_peaks(peaks_groups):
+    '''
+    Cluster oscillations
     
+    INPUT: peaks_groups: All peaks detected in the form [Car ID, Peak Time, Peak Position , Peak Type]
+    OUTPUT: wave_cluster: List of clusters with peaks inside
+    '''
     
+    car_ids   = np.unique(peaks_groups[:,0])
+    num_peaks = len(peaks_groups[:,0])
     
+    first_car_num = np.where(peaks_groups[:,0]==car_ids[0])[0].size  
     
+    cntr_cluster  = first_car_num
+    wave_clusters = [[] for _ in range(cntr_cluster)]
     
+    for i in range(first_car_num):
+        wave_clusters[i]=[[peaks_groups[i,0],
+                                 peaks_groups[i,1],
+                                 peaks_groups[i,2],
+                                 peaks_groups[i,3], 
+                                 i+1                 ]]
+        
+    for i in range(first_car_num-1,num_peaks):
+        t0  =  peaks_groups[i,1]
+        x0  = peaks_groups[i,2]
+        id0 = peaks_groups[i,0]
+        
+        cluster_array = np.zeros((cntr_cluster,3))
+        for j in range(cntr_cluster):
+            t   = wave_clusters[j][-1][1]
+            x   = wave_clusters[j][-1][2]
+            cid = wave_clusters[j][-1][0]
+            
+            [cluster_flag, xt_distance] = clust_assign(t0, x0,id0, t, x, cid);
+            
+            cluster_array[j,0] = cluster_flag
+            cluster_array[j,1] = xt_distance
+            cluster_array[j,2] = wave_clusters[j][-1][4]
+        
+        num_clust_assing = len(np.where(cluster_array[:,0]==1)[0])
+        
+        if num_clust_assing == 0:
+            cntr_cluster = cntr_cluster + 1
+            clust_label = cntr_cluster
+            temp = np.append(peaks_groups[i,:],clust_label)
+            wave_clusters.append([temp.tolist()])
+        
+        elif num_clust_assing == 1:
+            clust_label = int(cluster_array[np.where(cluster_array[:,0]==1)[0],2])
+            temp = np.append(peaks_groups[i,:],clust_label)
+            wave_clusters[clust_label-1].append(temp.tolist())
+            
+        elif num_clust_assing > 1:
+            indx = np.argmin(cluster_array[:,1])
+            clust_label = int(cluster_array[indx,2])
+            temp = np.append(peaks_groups[i,:],clust_label)
+            wave_clusters[clust_label-1].append(temp.tolist())
+            
+            
+    for i in range(cntr_cluster):
+        if len(wave_clusters[i]) <5:
+            wave_clusters[i] = [[]]
+            
+    wave_clusters = [x for x in wave_clusters if x != [[]]]
     
+    return wave_clusters
+
+
+#%%
     
+def breakpoint_detect(wave_clusters):
+    #breakpoints detection
+    n_clust = len(wave_clusters)  
+    num_break = 0
+    wave_clusters = [[] for _ in range(n_clust)]
+    for j in range(n_clust):
+        temp = np.asarray(wave_clusters[j])
+        slope = np.zeros(len(temp))
+        intercept = np.zeros(len(temp))
+        r_val = np.zeros(len(temp))
+        for i in range(3,len(temp)):
+            slope[i], intercept[i], r_value, _t, _k = stats.linregress(temp[:i,1],temp[:i,2])
+            r_val[i] = r_value**2/ len(temp[:i,1])
+            
+            
+        loc_break, _d = signal.find_peaks(r_val)
+        num_break = num_break +len(loc_break)
+
+######
     

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Created on Mon Jun 10 16:08:32 2019
+Plot denoising graphs real data.
 
 @author: kk2314
 """
@@ -135,7 +135,7 @@ plt.legend()
 plt.tight_layout()
 plt.savefig('Figures/denoising/Dist_den_semma_3.png')
 
-s
+
 
 #%%
 

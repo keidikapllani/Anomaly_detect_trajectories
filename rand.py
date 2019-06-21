@@ -36,3 +36,6 @@ plt.show()
 
 
 plt.plot(vel,pos)
+
+
+#%%
