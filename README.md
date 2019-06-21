@@ -1,5 +1,5 @@
 # Detection and Classification of Traffic Anomalies on Urban Arterial
-## Final Year Project 2019  Keidi Kapllani
+## Imperial College London MEng Final Year Project 2019  Keidi Kapllani
 ### Abstract
 This final year project focuses on anomaly detection on urban arterial roads using
 microscopic traffic variables. It is mainly concerned with the detection and classification
