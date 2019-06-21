@@ -8,7 +8,91 @@ Collection of functions used in the main.py
 
 import numpy as np
 import pywt
-from scipy import signal
+import pandas as pd
+from wrcoef import wavedec1, wrcoef1
+
+
+#%%
+def load_data(cntrl,force_recalc = False):
+    print('LOG: Loading data ')
+    '''
+    Function to load data and perform smoothing and denoising. This function stores the processed data.
+    If a saved array exist, it loads from that array. 
+    INPUT: cntrl: Select which time-group to load (0,1,2)
+           force_recalc: Forces recalculation from original dataset
+           
+    OUTPUT: data_smooth: Smooth and denoised data
+    '''
+
+    data = ['1','2', '3'] 
+    #columns to keep for working data
+    keep = [0,3,6,10,11,13,16]
+    
+    try:
+        if force_recalc:
+            print('Forcing smoothing for original data')
+            raise UnboundLocalError('Forcing smoothing for original data')
+            
+        file_name = 'data_'+data[cntrl]+'_smoooth_de.npy'
+        data_smooth = np.load(file_name)
+        file_name = 'data_'+data[cntrl]+'_raw.npy'
+        data_raw = np.load(file_name)
+        print('LOG: Data loaded from pre-processed arrays ')
+        
+    except:
+        print('LOG: Peforming smoothing & denoising on data ')
+        if cntrl == 0:
+            data_first  = pd.read_csv('data/0750am-0805am/trajectories-0750am-0805am.txt', delim_whitespace=True, header=None)
+            timestamp = pd.to_datetime(data_first[3],unit='ms')
+            data_first[3] = time_fix(timestamp)
+            data_raw = data_first.values 
+            data_raw = data_raw[:,keep]
+            data_raw[:,2] = data_raw[:,2]* 0.0003048  #convert position data to km
+            data_raw[:,6] = data_raw[:,6]* 0.0003048  #convert space data to km
+            data_raw[:,4] = data_raw[:,4]* 1.09728  #convert space data to km
+            data_ext = np.zeros((data_raw.shape[0],8))
+            data_ext[:,:-1] = data_raw
+            data_smooth= smooth_data(data_ext)
+            np.save( 'data_'+data[cntrl]+'_smoooth_de',data_smooth)
+            np.save( 'data_'+data[cntrl]+'_raw',data_raw)
+            
+        #Second time-group    
+        elif cntrl==1:
+            data_second = pd.read_csv('data/0805am-0820am/trajectories-0805am-0820am.txt', delim_whitespace=True, header=None)
+            timestamp = pd.to_datetime(data_second[3],unit='ms')
+            data_second[3] = time_fix(timestamp)
+            data_raw = data_second.values 
+            data_raw = data_raw[:,keep]
+            data_raw[:,2] = data_raw[:,2]* 0.0003048  #convert to km
+            data_raw[:,6] = data_raw[:,6]* 0.0003048  #convert space data to km
+            data_raw[:,4] = data_raw[:,4]* 1.09728  #convert space data to km
+            data_ext = np.zeros((data_raw.shape[0],8))
+            data_ext[:,:-1] = data_raw
+            data_smooth = smooth_data(data_ext)
+            np.save( 'data_'+data[cntrl]+'_smoooth_de',data_smooth)
+            np.save( 'data_'+data[cntrl]+'_raw',data_raw)
+        #Third time-group    
+        elif cntrl==2:
+            data_third  = pd.read_csv('data/0820am-0835am/trajectories-0820am-0835am.txt', delim_whitespace=True, header=None)
+            timestamp = pd.to_datetime(data_third[3],unit='ms')
+            data_third[3] = time_fix(timestamp)
+            data_raw = data_third.values 
+            data_raw = data_raw[:,keep]
+            data_raw[:,2] = data_raw[:,2]* 0.0003048  #convert to km
+            data_raw[:,6] = data_raw[:,6]* 0.0003048  #convert space data to km
+            data_raw[:,4] = data_raw[:,4]* 1.09728  #convert space data to km
+            data_ext = np.zeros((data_raw.shape[0],8))
+            data_ext[:,:-1] = data_raw
+            data_smooth = smooth_data(data_ext)
+            np.save( 'data_'+data[cntrl]+'_smoooth_de',data_smooth)
+            np.save( 'data_'+data[cntrl]+'_raw',data_raw)
+            
+    
+    print('LOG: Done')
+    return data_smooth, data_raw
+
+
+
 
 
 #%%
@@ -43,7 +127,7 @@ def sema_smoothing(x_in,dt,T):
 ' Calculate the wavelet energy for a signal x'    
 def wvlt_ener(x):
     a = np.arange(1,64.1,0.1)
-    coef=signal.cwt(x,signal.ricker,a)
+    coef, _t=pywt.cwt(x,a,'mexh')
     coef = coef.clip(min=0)
     E = (1/64) * np.sum(np.square(np.abs(coef)), axis=0)
     return E
@@ -51,6 +135,7 @@ def wvlt_ener(x):
 #%%
     'Performs smoothing and wavelet denoising on data'
 def smooth_data(data):
+    print('Smoothing and Denoising')
     car_id_list = np.unique(data[:,0]).astype(int)
    
     dt = 0.1/3600; # data point time interval
@@ -58,17 +143,17 @@ def smooth_data(data):
     Tv = 1/3600; # smoothing width (velocity data)   
     
     for i in range(0,car_id_list.size):
-        idx = np.where(data[:,0]==car_id_list[i])
-        idx = idx[0]
+        idx = np.where(data[:,0]==car_id_list[i])[0]
         pos = data[idx,2]
-        vel_dif = diff_v_a(pos,dt)
         pos1 = sema_smoothing(pos,dt,Tx)
+        vel_dif = diff_v_a(pos1,dt)
         vel_smooth = sema_smoothing(vel_dif,dt,Tv)
-        vel_final = denoise(vel_smooth)
-        vel = np.insert( vel_final, 0, 0)
+        dwt_vel = denoise(data[idx,4])
+        vel = np.insert( vel_smooth, 0, 0)
         vel = np.append( vel, 0)
         data[idx,2] = pos1
         data[idx,4] = vel
+        data[idx,7] = dwt_vel
     return data
 #%%
 
@@ -85,15 +170,26 @@ def wrcoef(X, coef_type, coeffs, wavename, level):
 
 #%%
 def denoise(data):
-    lvl = 5
+    lvl = 4
     db4 = pywt.Wavelet('db4')
-    cA5,cD5, cD4, cD3, cD2, cD1=pywt.wavedec(data, db4, level=lvl)
-    n = data.size
-    cA6cD_approx = pywt.upcoef('a',cA5,'db4',take=n, level=lvl)
-    return cA6cD_approx
+#    coeffs=pywt.wavedec(data, db4, level=lvl)
+    C, L = wavedec1(data, wavelet=db4, level=lvl)
+#    n = data.size
+#    cA6cD_approx = pywt.waverec(coeffs, 'db4',axis = 0)
+    D = wrcoef1(C, L, wavelet=db4, level=4)
+#    (cA, cD) = pywt.dwt(data, 'db4')
+#    smotheed = pywt.waverec()
+    return D
 
 #%%
 def lane_changer(lane_data):
+    """
+    identify lane changers and return car ids of lane changers and non-lane changers
+    INPUT: lane_data: Full data in the forma nx7
+           
+    OUTPUT: lane_normal: Car ids of non-lane changers
+            lane_changers: Car ids of lane changers
+    """
     lane_changers = []
     lane_normal = []
     car_id_list = np.unique(lane_data[:,0]).astype(int)
@@ -109,20 +205,83 @@ def lane_changer(lane_data):
 
 #%%%
 def peak_classify(locs_p, locs_n, v):
-    
+    """
+    Classify peaks into Acceleration (A), Decceleration (D) or Steade-state (S)
+    INPUT: locs_p: location of peaks in positive wave
+           locs_n: locaiton of peaks in negative wave
+           v:      velocity data
+    OUTPUT: locs_sort: Index of peaks classified
+            info_sort: Peak information; 0 - Decceleration (D) , 1-Acceleration (A), 3-Steade-state (S)
+    """
     locs_pn = np.append(locs_p,locs_n)
     info = np.append(np.ones(locs_p.size),np.zeros(locs_n.size))
     locs_sort = np.sort(locs_pn)
     info_sort = info[np.argsort(locs_pn)]
-    if info.size>0:
-#        for i in range(0,locs_sort.size-1):
-#            if abs(v[locs_sort[i]]-v[locs_sort[i+1]])<5:
-#                info_sort[i] = 3
+    if locs_sort.size>0:
+        for i in range(0,locs_sort.size-1):
+            if(abs(v[locs_sort[i]]-v[locs_sort[i+1]]))<5:
+                info_sort[i] = 2
         
-        if locs_sort[info.size-1] > v.size-64:
+        if locs_sort[locs_sort.size-1] > v.size-64:
             locs_sort = locs_sort[:-1]
-            info = info[:-1]
-            
-    
+            info_sort = info_sort[:-1]
+#        if locs_sort[0] < 26:
+#            locs_sort = locs_sort[1:]
+#            info_sort = info_sort[1:]
+#    
         
     return locs_sort, info_sort
+#%%%
+def time_fix(timestamp):
+    """
+    Convert pandas timestamp into hours represenation
+    INPUT: timestamp: pandas timestamp data
+    OUTPUT: t_fixed: Time data in hours
+    """
+    hour = timestamp.dt.hour.values - 7
+    minutes = timestamp.dt.minute.values
+    seconds = timestamp.dt.second.values
+    ms = timestamp.dt.microsecond.values/1e6
+    t_fixed = hour + np.round((((seconds+ms)/60)+minutes)/60,4)
+    
+    return t_fixed
+
+#%%
+def clust_assign(t_new, x_new, cid_new, t, x, cid):
+    
+    time_flag = False;
+    id_flag = False;
+    space_flag = False;
+    
+    'Check if the time difference is between 0.9 - 1 sec'
+    time_diff = t_new - t
+    if (time_diff  > -5/3600 and time_diff < 10/3600):
+        time_flag = True
+        
+    'check if ther are different cars'
+    if cid_new > cid:
+        id_flag = True
+    'Check if the space is more then 50m'
+    if x_new - x < 0.5:
+        space_flag = True
+    
+    
+    if (time_flag and id_flag and space_flag):
+        cluster_flag = 1
+    else:
+        cluster_flag = 0
+    
+    xt_dist = np.linalg.norm([abs(t-t_new),abs(x-x_new)])
+    
+    
+    
+    return cluster_flag, xt_dist
+    
+    
+    
+    
+    
+    
+    
+    
+    

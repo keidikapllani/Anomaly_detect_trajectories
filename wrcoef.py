@@ -10,7 +10,7 @@ import numpy as np
 import pywt
 
 
-def wavedec(data, wavelet, mode='symmetric', level=1, axis=-1):
+def wavedec1(data, wavelet, mode='symmetric', level=1, axis=-1):
     """
     Multiple level 1-D discrete fast wavelet decomposition
     Calling Sequence
