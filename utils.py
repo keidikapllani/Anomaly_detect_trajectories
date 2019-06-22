@@ -2,7 +2,8 @@
 # -*- coding: utf-8 -*-
 """
 
-Collection of functions used in the main.py
+Collection of functions used in the ofr the final year projects.
+
 @author: Keidi Kapllani
 """
 
@@ -547,7 +548,7 @@ def breakpoint_detect(wave_clusters):
     #breakpoints detection
     n_clust = len(wave_clusters)  
     num_break = 0
-    wave_clusters = [[] for _ in range(n_clust)]
+    breaks_locs = [[] for _ in range(n_clust)]
     for j in range(n_clust):
         temp = np.asarray(wave_clusters[j])
         slope = np.zeros(len(temp))
