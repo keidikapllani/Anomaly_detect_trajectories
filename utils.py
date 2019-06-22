@@ -15,7 +15,7 @@ from matplotlib.collections import LineCollection
 from scipy import signal
 from scipy import stats 
 from wrcoef import wavedec1, wrcoef1
-#pip install gdown
+#!pip install gdown
 import gdown
 #%%
 def load_data(cntrl, force_recalc = False):
@@ -163,14 +163,14 @@ def wvlt_ener(x):
     return E
 
 #%%
-    'Performs smoothing and wavelet denoising on data'
+    
 def smooth_data(data):
     print('Smoothing and Denoising')
     car_id_list = np.unique(data[:,0]).astype(int)
    
-    dt = 0.1/3600; # data point time interval
-    Tx = 0.5/3600; # smoothing width (position data)
-    Tv = 1/3600; # smoothing width (velocity data)   
+    dt = 0.1/3600 # data point time interval
+    Tx = 0.5/3600 # smoothing width (position data)
+    Tv = 1/3600 # smoothing width (velocity data)   
     
     for i in range(0,car_id_list.size):
         idx = np.where(data[:,0]==car_id_list[i])[0]
@@ -507,7 +507,7 @@ def cluster_peaks(peaks_groups):
             x   = wave_clusters[j][-1][2]
             cid = wave_clusters[j][-1][0]
             
-            [cluster_flag, xt_distance] = clust_assign(t0, x0,id0, t, x, cid);
+            [cluster_flag, xt_distance] = clust_assign(t0, x0,id0, t, x, cid)
             
             cluster_array[j,0] = cluster_flag
             cluster_array[j,1] = xt_distance
@@ -560,7 +560,10 @@ def breakpoint_detect(wave_clusters):
             
             
         loc_break, _d = signal.find_peaks(r_val)
+        breaks_locs.append[j].append(loc_break)
         num_break = num_break +len(loc_break)
+        
+    return breaks_locs
 
 ######
     

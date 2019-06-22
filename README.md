@@ -22,9 +22,12 @@ The code implements denoising for both sEMA smoothing and DWT denoising, anomaly
       - *start_frame*: index of starting frame (0 is first frame)
       - *num_frames*: number of frames (NOTE: Number fo frames should be proportional to frame length)
       - *start_lane*: Starting lane to consider (0- Lane 1 ... 4- Lane 5)
-       - *num_lanes* : Number of lanes to analyse (MAX 5)
+      - *num_lanes* : Number of lanes to analyse (MAX 5)
 
    -  OUTPUT: peaks_groups: All peaks detected in the form [Car ID, Peak Time, Peak Position , Peak Type]
 
-
-
+- **cluster_peaks()** :  
+  - INPUT: 
+    - *peaks_groups*: All peaks detected in the form [Car ID, Peak Time, Peak Position , Peak Type]
+  - OUTPUTS:
+    - *wave_cluster*: List of clusters with peaks inside 

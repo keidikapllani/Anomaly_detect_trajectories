@@ -1,5 +1,5 @@
 import numpy as np
-from utils import load_data, anomaly_detect, cluster_peaks
+from utils import load_data, anomaly_detect, cluster_peaks, breakpoint_detect
 import matplotlib.pyplot as plt
 from scipy import signal
 from sklearn.cluster import SpectralClustering
@@ -33,29 +33,15 @@ peaks_groups = anomaly_detect(data_smooth, frame_length =1.5/60, plot = 'Normal'
 
 #%%
 
+
 wave_clusters = cluster_peaks(peaks_groups)
 
-n_clust = len(wave_clusters)  
 
-#breakpoints detection
-num_break = 0
-for j in range(len(wave_clusters)):
-    temp = np.asarray(wave_clusters[j])
-    slope = np.zeros(len(temp))
-    intercept = np.zeros(len(temp))
-    r_val = np.zeros(len(temp))
-    for i in range(3,len(temp)):
-        slope[i], intercept[i], r_value, _t, _k = stats.linregress(temp[:i,1],temp[:i,2])
-        r_val[i] = r_value**2/ len(temp[:i,1])
-        
-        
-    loc_break, _d = signal.find_peaks(r_val)
-    num_break = num_break +len(loc_break)
+breaks_locs, num_break = breakpoint_detect(wave_clusters)
 
-######
 
-num_a_peaks = len(peaks_info[np.where(peaks_info==1)])
-num_d_peaks = len(peaks_info[np.where(peaks_info==0)])
+num_a_peaks = len(peaks_groups[np.where(peaks_groups[:,4]==1)])
+num_d_peaks = len(peaks_groups[np.where(peaks_groups[:,4]==0)])
 num_clusters = len(wave_clusters)
 print(' A peaks = '+str(num_a_peaks)+' D peaks = '+str(num_d_peaks)+' number of clusters= '+str(num_clusters)+ ' number of breaks= '+str(num_break ))
 
