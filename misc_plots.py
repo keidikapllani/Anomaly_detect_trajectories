@@ -16,16 +16,16 @@ import scipy.io as sio
 Load Data
 '''
 cntrl = 0
-data_smooth_1, data_raw_1 = load_data(cntrl,True)
+data_smooth_1, data_raw_1 = load_data(cntrl, True)
 cntrl = 1
-data_smooth_2,data_raw_2 = load_data(cntrl,True)
+data_smooth_2,data_raw_2 = load_data(cntrl, True)
 cntrl = 2
-data_smooth_3, data_raw_3 = load_data(cntrl,True)
+data_smooth_3, data_raw_3 = load_data(cntrl, True)
 
 
-dwt_vel_1 = sio.loadmat('dwt_vel_1')['v_de']
-dwt_vel_2 = sio.loadmat('dwt_vel_2')['v_de']
-dwt_vel_3 = sio.loadmat('dwt_vel_3')['v_de']
+dwt_vel_1 = sio.loadmat('matrices/dwt_vel_1')['v_de']
+dwt_vel_2 = sio.loadmat('matrices/dwt_vel_2')['v_de']
+dwt_vel_3 = sio.loadmat('matrices/dwt_vel_3')['v_de']
 data_smooth_1[:,7] = dwt_vel_1[:,0]
 data_smooth_2[:,7] = dwt_vel_2[:,0]
 data_smooth_3[:,7] = dwt_vel_3[:,0]
@@ -138,5 +138,23 @@ plt.savefig('Figures/denoising/Dist_den_semma_3.png')
 
 
 #%%
+
+indx_car = np.where(data_smooth_1[:,0]==400)[0]
+car = data_smooth_1[indx_car,:]
+car_raw = data_raw_1[indx_car,:]
+
+fig, ax = plt.subplots(1, 1,gridspec_kw={'hspace': 0.2, 'wspace': 0})
+ax.plot(car_raw[1:-1,1],car_raw[1:-1,4],'g', linewidth=1.5,label='NGSIM')
+ax.legend()
+
+#for ax in ax.flat:
+#    ax.set(ylabel='Velocity (km/h)', xlabel='Time (h)')
+#    ax.label_outer()
+fig.set_dpi(150)
+plt.xlabel('Time (h)')
+plt.ylabel('Speed (km/h)')
+
+plt.legend()
+plt.tight_layout()
 
 

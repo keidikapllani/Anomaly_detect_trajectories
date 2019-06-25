@@ -54,7 +54,6 @@ def load_data(cntrl, force_recalc = False):
                 url    = 'https://drive.google.com/uc?id=1E7_ABEvLcWFUC6xkknJSreKNAU12v-Fk'
                 output = 'data/trajectories-0750am-0805am.txt'
                 gdown.download(url, output, quiet=False)
-                print('LOG: Downloading data for 0750am-0805am ')
                 data_first  = pd.read_csv('data/trajectories-0750am-0805am.txt', delim_whitespace=True, header=None)
                 
             timestamp       = pd.to_datetime(data_first[3],unit='ms')
@@ -79,7 +78,6 @@ def load_data(cntrl, force_recalc = False):
                 url    = 'https://drive.google.com/uc?id=1flg3VYnOOAQa3we74WPS8MsI0EuUdLqi'
                 output = 'data/trajectories-0805am-0820am.txt'
                 gdown.download(url, output, quiet=False)
-                print('LOG: Downloading data for 0805am-0820am ')
                 data_second = pd.read_csv('data/trajectories-0805am-0820am.txt', delim_whitespace=True, header=None)
             timestamp       = pd.to_datetime(data_second[3],unit='ms')
             data_second[3]  = time_fix(timestamp)
@@ -96,13 +94,12 @@ def load_data(cntrl, force_recalc = False):
         #Third time-group    
         elif cntrl==2:
             try:
-                data_third  = pd.read_csv('data/0820am-0835am/trajectories-0820am-0835am.txt', delim_whitespace=True, header=None)
+                data_third  = pd.read_csv('data/trajectories-0820am-0835am.txt', delim_whitespace=True, header=None)
             except:
                 print('LOG: Dowloading data for 0820am-0835am ')
                 url    = 'https://drive.google.com/uc?id=1FKC3TrKFDAsK0gQO_YRujpal6gPQtJiB'
                 output = 'data/trajectories-0820am-0835am.txt'
                 gdown.download(url, output, quiet=False)
-                print('LOG: Downloading data for 0805am-0820am ')
                 data_third  = pd.read_csv('data/trajectories-0820am-0835am.txt', delim_whitespace=True, header=None)
             timestamp = pd.to_datetime(data_third[3],unit='ms')
             data_third[3]   = time_fix(timestamp)
@@ -560,10 +557,29 @@ def breakpoint_detect(wave_clusters):
             
             
         loc_break, _d = signal.find_peaks(r_val)
-        breaks_locs.append[j].append(loc_break)
+        breaks_locs[j].append(loc_break)
         num_break = num_break +len(loc_break)
+        if loc_break.size !=0:
+            for i in range(loc_break.size):
+                if i==0:
+                    plt.scatter(temp[loc_break[i],1],temp[loc_break[i],2],c='green',s=80,label='Breakpoint')    
+                    plt.plot(np.unique(temp[:loc_break[i],1]), 
+                             np.poly1d(np.polyfit(temp[:loc_break[i],1], 
+                                                  temp[:loc_break[i],2], 1))(np.unique(temp[:loc_break[i],1])),linewidth =4)
+                else:
+                    plt.scatter(temp[loc_break[i],1],temp[loc_break[i],2],c='green',s=80,label='Breakpoint')    
+                    plt.plot(np.unique(temp[loc_break[i-1]:loc_break[i],1]), 
+                             np.poly1d(np.polyfit(temp[loc_break[i-1]:loc_break[i],1], 
+                                                  temp[loc_break[i-1]:loc_break[i],2], 1))(np.unique(temp[loc_break[i-1]:loc_break[i],1])),linewidth =4)
         
-    return breaks_locs
+            
+    #            plt.scatter(temp[loc_break[-1],1],temp[loc_break[-1],2],c='green',s=80)    
+                plt.plot(np.unique(temp[loc_break[-1]:,1]), 
+                             np.poly1d(np.polyfit(temp[loc_break[-1]:,1], 
+                                                  temp[loc_break[-1]:,2], 1))(np.unique(temp[loc_break[-1]:,1])),linewidth =4)
+    
+        
+    return breaks_locs, num_break
 
 ######
     

@@ -28,7 +28,7 @@ Finding ids of cars in lane j frame l
 
 '''
 
-peaks_groups = anomaly_detect(data_smooth, frame_length =1.5/60, plot = 'Normal', start_frame = 0, end_frame = 1, start_lane = 0, end_lane=1 )
+peaks_groups = anomaly_detect(data_smooth, frame_length =3/60, plot = 'Normal', start_frame = 0, num_frames = 1, start_lane = 0, num_lanes=1 )
     
 
 #%%
@@ -40,36 +40,13 @@ wave_clusters = cluster_peaks(peaks_groups)
 breaks_locs, num_break = breakpoint_detect(wave_clusters)
 
 
-num_a_peaks = len(peaks_groups[np.where(peaks_groups[:,4]==1)])
-num_d_peaks = len(peaks_groups[np.where(peaks_groups[:,4]==0)])
+num_a_peaks = len(peaks_groups[np.where(peaks_groups[:,3]==1)])
+num_d_peaks = len(peaks_groups[np.where(peaks_groups[:,3]==0)])
 num_clusters = len(wave_clusters)
 print(' A peaks = '+str(num_a_peaks)+' D peaks = '+str(num_d_peaks)+' number of clusters= '+str(num_clusters)+ ' number of breaks= '+str(num_break ))
 
 
 
-
-
-        
-
-
-        #%%
-#Plot clusters
-n_clust = len(wave_clusters)     
-cmap = plt.cm.get_cmap("tab10", n_clust) 
-cycol = cycle('bgrcmk')
-for i in range(n_clust):
-    temp = np.asarray(wave_clusters[i])
-#    one_clust = np.vstack([one_clust,temp])
-    plt.scatter(temp[:,1],temp[:,2],c=next(cycol), label= "Cluster "+str(i+1))
-    
-    
-            
-        
-        
-#plt.scatter(one_clust[:,1],one_clust[:,2],c=one_clust[:,4])
-  
-plt.legend()
-plt.show()        
 #%%
 '''
 K-means clustering for osciallations tracing
@@ -138,111 +115,8 @@ for j in range(len(wave_clusters)):
 
 plt.show()    
     
-    #%%
-plt.figure()
-for i in range(0,windowed_lane_cf_ids.size):
-    
-    #get a single vehilce
-    car = data_smooth[np.where(data_smooth[:,0]==windowed_lane_cf_ids[i])]
-    
-    if car[:,4].size <150:
-        continue
-#    print(car[:,4].size)
-    vel = car[66:-66,4]
-    v_out = vel[64:-64]
-    pos = car[-66:66,2]
-    t = car[-66:66,1]
-    plt.plot(t,pos,'k', linewidth=1) # normal plot
-#  
-#    for k in range(0,info.size):
-#        if info[k] == 1:
-#            dec = plt.scatter(t[locs[k]+2],pos[locs[k]+2],
-#                              label='Deceleration',s=60, 
-#                              facecolors='none', 
-#                              edgecolors='b')
-#        if info[k] == 0:
-#            acc = plt.scatter(t[locs[k]+2],pos[locs[k]+2],
-#                               s=60, 
-#                              facecolors='none', 
-#                              edgecolors='r',
-#                             label='Acceleration')
-#        if info[k] == 2:
-#            std = plt.scatter(t[locs[k]+2],pos[locs[k]+2],
-#                             marker='^',c='g',
-#                             label='Steady-state')
-#        else:
-#            continue
 
 
-#plt.legend((dec, acc, std),
-#           ('Deceleration', 'Acceleration'),
-#           scatterpoints=1,
-#           loc='lower right',
-#           ncol=1,
-#           fontsize=15)
-plt.xlabel('Time (h)')
-plt.ylabel('Position (km)')
-plt.title('', fontsize= 20)
-plt.ylim(ylim_min,ylim_max)
-#plt.savefig('Figures/Dataset_'+str(switch+1)+'/Frame_'+str(l+1)+'_lane_'+lanes[j]+'.png',bbox_inches='tight')
-plt.show()
-#
-    
-    
-#%%
-plt.scatter(temp[:,1],temp[:,2])
-plt.scatter(temp[12,1],temp[12,2],c='green',s=80)    
-    
-r_value = - r_value
-    
-break_loc, _d = signal.find_peaks(r_value,height=0.52)
-    
-    
-    
-#from seg_reg import SegmentedLinearReg    
-#
-#plt.scatter( temp[:,1], temp[:,2] )
-#
-#initialBreakpoints = [1]
-#plt.plot( *SegmentedLinearReg( temp[:,1], temp[:,2], initialBreakpoints ), '-r' );
-#plt.xlabel('X'); plt.ylabel('Y');
-#
-#def piecewise_linear(x, x0, y0, k1, k2):
-#    return np.piecewise(x, [x < x0, x >= x0], [lambda x:k1*x + y0-k1*x0, lambda x:k2*x + y0-k2*x0])
-#    
-#from scipy import optimize
-#p , e = optimize.curve_fit(piecewise_linear, temp[:,1], temp[:,2])
-#plt.plot(x, y, "o")
-#plt.plot(xd, piecewise_linear(xd, *p))
-#
-#
-#import pwlf
-#
-#    
-#    
-#    
-#    
-#    
-#    
-#from mlinsights.mlmodel import PiecewiseRegressor
-#from sklearn.tree import DecisionTreeRegressor
-#
-#model = PiecewiseRegressor(verbose=True,
-#                           binner=DecisionTreeRegressor(min_samples_leaf=300))
-#model.fit(temp[:,1], temp[:,2])
-#    
-#    
-    
-    #alfa = np.zeros(len(temp))
-#for i in range(1,len(temp)):
-#    reg.fit(temp[:i,1].reshape(-1,1),temp[:i,2])
-#    alfa[i] =  reg.coef_
-
-    
-    
-    
-    
-    
     
     
     
