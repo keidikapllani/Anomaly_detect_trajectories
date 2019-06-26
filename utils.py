@@ -274,11 +274,12 @@ def time_fix(timestamp):
     return t_fixed
 
 #%%
-def clust_assign(t_new, x_new, cid_new, t, x, cid):
+def clust_assign(t_new, x_new, cid_new, p0, t, x, cid,p):
     
-    time_flag = False;
-    id_flag = False;
-    space_flag = False;
+    time_flag = False
+    id_flag = False
+    space_flag = False
+    type_flag = False
     
     'Check if the time difference is between 0.9 - 1 sec'
     time_diff = t_new - t
@@ -291,12 +292,18 @@ def clust_assign(t_new, x_new, cid_new, t, x, cid):
     'Check if the space is more then 50m'
     if x_new - x < 0.5:
         space_flag = True
+
+    if p0 == p:
+        type_flag = 1
+    else:
+        type_flag = 0
     
     
-    if (time_flag and id_flag and space_flag):
+    if (time_flag and id_flag and space_flag and type_flag):
         cluster_flag = 1
     else:
         cluster_flag = 0
+
     
     xt_dist = np.linalg.norm([abs(t-t_new),abs(x-x_new)])
     
@@ -497,14 +504,16 @@ def cluster_peaks(peaks_groups):
         t0  =  peaks_groups[i,1]
         x0  = peaks_groups[i,2]
         id0 = peaks_groups[i,0]
+        p0 = peaks_groups[i,3]
         
         cluster_array = np.zeros((cntr_cluster,3))
         for j in range(cntr_cluster):
             t   = wave_clusters[j][-1][1]
             x   = wave_clusters[j][-1][2]
             cid = wave_clusters[j][-1][0]
+            p = wave_clusters[j][-1][3]
             
-            [cluster_flag, xt_distance] = clust_assign(t0, x0,id0, t, x, cid)
+            [cluster_flag, xt_distance] = clust_assign(t0, x0,id0,p0, t, x, cid, p)
             
             cluster_array[j,0] = cluster_flag
             cluster_array[j,1] = xt_distance
